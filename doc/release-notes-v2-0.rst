@@ -2,6 +2,8 @@
 Duktape 2.0 release notes
 =========================
 
+FIXME: typeof internalPropertyKey is now "symbol".
+
 Release overview
 ================
 
@@ -1018,6 +1020,17 @@ without an internal array part) now enumerate identically to dense arrays.
 To upgrade:
 
 * Check application code for enumeration assumptions.
+
+Symbol support related changes
+------------------------------
+
+Small changes related to adding symbol support:
+
+* Internal properties are now called "hidden symbols".  They are still custom
+  behavior compared to ES6 because they can't be enumerated from Ecmascript code
+  even with ``Object.getOwnPropertySymbols()``.
+
+* The ``DUK_ENUM_INCLUDE_INTERNAL`` has been renamed ``DUK_ENUM_INCLUDE_HIDDEN``.
 
 Other incompatible changes
 --------------------------
