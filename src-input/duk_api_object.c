@@ -108,6 +108,7 @@ DUK_LOCAL duk_bool_t duk__put_prop_shared(duk_context *ctx, duk_idx_t obj_idx, d
 	DUK_ASSERT((idx_key == -2 && (idx_key ^ 1) == -1) ||
 	           (idx_key == -1 && (idx_key ^ 1) == -2));
 	tv_obj = duk_require_tval(ctx, obj_idx);
+	/* FIXME: Direct access; faster validation */
 	tv_key = duk_require_tval(ctx, idx_key);
 	tv_val = duk_require_tval(ctx, idx_key ^ 1);
 	throw_flag = duk_is_strict_call(ctx);
@@ -164,6 +165,27 @@ DUK_INTERNAL duk_bool_t duk_put_prop_stridx(duk_context *ctx, duk_idx_t obj_idx,
 	obj_idx = duk_require_normalize_index(ctx, obj_idx);
 	duk_push_hstring(ctx, DUK_HTHREAD_GET_STRING(thr, stridx));
 	return duk__put_prop_shared(ctx, obj_idx, -1);
+}
+
+DUK_LOCAL duk_bool_t duk__put_prop_shared_key(duk_context *ctx, duk_idx_t obj_idx, const char *key) {
+	duk_push_string(ctx, key);
+	return duk__put_prop_shared(ctx, obj_idx, -1);
+}
+
+DUK_INTERNAL duk_bool_t duk_put_prop_string_uint(duk_context *ctx, duk_idx_t obj_idx, const char *key, duk_uint_t val) {
+	/* XXX: Helper could be refactored better if there was a way for
+	 * the helper to normalize the index, but take into account that
+	 * we already pushed something in.
+	 */
+	obj_idx = duk_require_normalize_index(ctx, obj_idx);
+	duk_push_uint(ctx, val);
+	return duk__put_prop_shared_key(ctx, obj_idx, key);
+}
+
+DUK_INTERNAL duk_bool_t duk_put_prop_string_pointer(duk_context *ctx, duk_idx_t obj_idx, const char *key, void *val) {
+	obj_idx = duk_require_normalize_index(ctx, obj_idx);
+	duk_push_pointer(ctx, val);
+	return duk__put_prop_shared_key(ctx, obj_idx, key);
 }
 
 DUK_EXTERNAL duk_bool_t duk_del_prop(duk_context *ctx, duk_idx_t obj_idx) {
